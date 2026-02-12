@@ -10,6 +10,7 @@
   [![License](https://img.shields.io/github/license/stoatchat/for-desktop?style=flat-square&logoColor=white)](https://github.com/stoatchat/for-desktop/blob/main/LICENSE)
 </h1>
 Application for Windows, macOS, and Linux.
+<img src="./.banner/banner.png" />
 </div>
 <br/>
 
