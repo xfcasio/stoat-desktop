@@ -42,7 +42,7 @@ export function createMainWindow() {
     minHeight: 300,
     width: 1280,
     height: 720,
-    backgroundColor: "#191919",
+    backgroundColor: "#000A0E",
     frame: !config.customFrame,
     icon: windowIcon,
     webPreferences: {
@@ -105,7 +105,121 @@ export function createMainWindow() {
   });
 
   // send the config
-  mainWindow.webContents.on("did-finish-load", () => config.sync());
+mainWindow.webContents.once('did-finish-load', () => {
+  mainWindow.webContents.insertCSS(`
+    /* Font overrides with 16px */
+    body, p, div, button, input, textarea, select, h1, h2, h3, h4, h5, h6, label {
+      font-family: "Ac437 PhoenixVGA 9x16" !important;
+      font-size: 16px !important;
+    }
+    [class*="icon"], [class*="Icon"], svg {
+      font-family: inherit !important;
+    }
+
+    /* Base theme colors - #000A0E background */
+    body, .app, main, [class*="container"], [class*="panel"], [class*="sidebar"] {
+      background-color: #000A0E !important;
+      color: #818C98 !important;
+      border: none !important;
+    }
+
+    /* Content areas - lighter than background */
+    [class*="message"], [class*="content"], [class*="chat"] {
+      background-color: #050C0F !important;
+      color: #818C98 !important;
+      border: none !important;
+    }
+
+    /* Major UI elements with #111A1F borders */
+    [class*="chat"], [class*="server"], [class*="user"], [class*="sidebar"],
+    [class*="panel"], [class*="channel"], [class*="member"],
+    [class*="message-input"], [class*="compose"], [class*="textbox"],
+    [class*="input-area"], [class*="chat-input"], [class*="send"] {
+      border: 1px solid #111A1F !important;
+    }
+
+    /* Popup cards with brighter background */
+    [class*="popup"], [class*="dropdown"], [class*="modal"], [class*="tooltip"],
+    [class*="context"], [class*="menu"], [class*="profile"], [class*="card"] {
+      background-color: #060D10 !important;
+      border: 1px solid #111A1F !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    /* Small interactive elements with accent color */
+    button[class*="small"], [class*="button"][class*="compact"],
+    input[type="submit"], input[type="button"] {
+      background: linear-gradient(135deg, #78B892 0%, #6BA683 100%) !important;
+      color: #000A0E !important;
+      border: 1px solid #5A9470 !important;
+      box-shadow: 0 2px 4px rgba(120, 184, 146, 0.2) !important;
+    }
+
+    /* Large buttons with very subtle shading */
+    button, [class*="button"]:not([class*="small"]):not([class*="compact"]),
+    [role="button"]:not([class*="small"]) {
+      background: linear-gradient(135deg, #050C0F 0%, #03080A 100%) !important;
+      color: #818C98 !important;
+      border: 1px solid hsla(210, 10%, 90%, 0.08) !important;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    button:hover, [class*="button"]:hover, [role="button"]:hover {
+      background: linear-gradient(135deg, #060D10 0%, #050C0F 100%) !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Input fields with subtle accent */
+    input, textarea, select {
+      background: linear-gradient(135deg, #03080A 0%, #04090C 100%) !important;
+      color: #818C98 !important;
+      border: 1px solid hsla(210, 10%, 90%, 0.12) !important;
+      border-bottom: 2px solid #78B892 !important;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      outline: none !important;
+      border-bottom: 2px solid #8AC8A3 !important;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 8px rgba(120, 184, 146, 0.3) !important;
+    }
+
+    /* Fix discover button area */
+    [class*="discover"], [class*="server"][class*="discover"] {
+      background-color: #000A0E !important;
+    }
+
+    /* Hide voice popups */
+    .voice-popup-hidden {
+      display: none !important;
+    }
+  `);
+
+  // MutationObserver for voice popups
+  mainWindow.webContents.executeJavaScript(`
+    const observer = new MutationObserver(() => {
+      const selectors = [
+        '[class*="voice"]',
+        '[class*="call"]',
+        '[class*="pointer-events_all"]',
+        '.w_360px.h_120px',
+        '[style*="360px"]',
+        '[style*="120px"]'
+      ];
+
+      selectors.forEach(selector => {
+        document.querySelectorAll(selector).forEach(el => {
+          if (el.offsetWidth === 360 && el.offsetHeight === 120) {
+            el.classList.add('voice-popup-hidden');
+          }
+        });
+      });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+  `);
+  config.sync();
+});
 
   // configure spellchecker context menu
   mainWindow.webContents.on("context-menu", (_, params) => {
